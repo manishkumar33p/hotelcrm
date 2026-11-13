@@ -1,0 +1,1 @@
+.room-filters{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}.room-filters button{border:1px solid #dfe7f1;background:#fff;border-radius:20px;padding:7px 14px;font-size:11px;color:#65758a}.room-filters button.selected{background:#0e5eb6;color:white;border-color:#0e5eb6}.inline-select{border:1px solid #e2e9f1;border-radius:7px;padding:6px;color:#53647a;font-size:11px}

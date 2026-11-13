@@ -1,0 +1,23 @@
+import React,{useState} from "react";
+import {Plus} from "lucide-react";
+import Modal from "../common/Modal";
+import Status from "../common/Status";
+import "./Bookings.css";
+export default function Bookings({properties,rooms,bookings,setBookings,setRooms}) {
+ const [open,setOpen]=useState(false),[filter,setFilter]=useState("All"),[form,setForm]=useState({guest:"",phone:"",propertyId:properties[0]?.id||"",roomId:"",checkIn:"",checkOut:"",amount:"",source:"Website"});
+ const propertyRooms=rooms.filter(r=>r.propertyId===Number(form.propertyId));
+ const change=e=>setForm({...form,[e.target.name]:e.target.value});
+ const add=e=>{e.preventDefault();const room=rooms.find(r=>r.id===Number(form.roomId));if(!room||room.status!=="Available"){alert("Please select an available room or bed.");return}const booking={...form,id:Date.now(),propertyId:Number(form.propertyId),roomId:Number(form.roomId),amount:Number(form.amount),status:"Confirmed"};setBookings([booking,...bookings]);setRooms(rooms.map(r=>r.id===room.id?{...r,status:"Occupied"}:r));setOpen(false);setForm({...form,guest:"",phone:"",roomId:"",checkIn:"",checkOut:"",amount:""})};
+ const setStatus=(b,status)=>{setBookings(bookings.map(x=>x.id===b.id?{...x,status}:x));if(status==="Checked Out"||status==="Cancelled")setRooms(rooms.map(r=>r.id===b.roomId?{...r,status:"Available"}:r));if(status==="Checked In")setRooms(rooms.map(r=>r.id===b.roomId?{...r,status:"Occupied"}:r))};
+ const name=id=>properties.find(p=>p.id===id)?.name||"Property",room=id=>rooms.find(r=>r.id===id)?.number||"—";
+ const visible=bookings.filter(b=>filter==="All"||b.status===filter);
+ return <><div className="section-head"><h2>All Bookings <span className="muted">({bookings.length})</span></h2><button className="btn" onClick={()=>setOpen(true)}><Plus size={16}/> New Booking</button></div>
+ <div className="room-filters">{["All","Confirmed","Checked In","Checked Out","Cancelled"].map(x=><button key={x} className={filter===x?"selected":""} onClick={()=>setFilter(x)}>{x}</button>)}</div>
+ <div className="card"><div className="table-wrap"><table><thead><tr><th>Booking ID</th><th>Guest</th><th>Property / Room</th><th>Check-in</th><th>Check-out</th><th>Amount</th><th>Status</th><th>Update</th></tr></thead><tbody>{visible.map(b=><tr key={b.id}><td>#{b.id}</td><td><strong>{b.guest}</strong><small className="sub-cell">{b.phone}</small></td><td>{name(b.propertyId)}<small className="sub-cell">Room/Bed: {room(b.roomId)}</small></td><td>{b.checkIn}</td><td>{b.checkOut}</td><td>₹{Number(b.amount).toLocaleString("en-IN")}</td><td><Status value={b.status}/></td><td><select className="inline-select" value={b.status} onChange={e=>setStatus(b,e.target.value)}><option>Confirmed</option><option>Checked In</option><option>Checked Out</option><option>Cancelled</option></select></td></tr>)}</tbody></table>{!visible.length&&<div className="empty">No bookings in this view.</div>}</div></div>
+ {open&&<Modal title="Create Booking" onClose={()=>setOpen(false)}><form onSubmit={add}><div className="form-grid">
+ <div className="field"><label>Guest Name *</label><input required name="guest" value={form.guest} onChange={change}/></div><div className="field"><label>Phone *</label><input required name="phone" value={form.phone} onChange={change}/></div>
+ <div className="field"><label>Property *</label><select name="propertyId" value={form.propertyId} onChange={e=>setForm({...form,propertyId:e.target.value,roomId:""})}>{properties.map(p=><option value={p.id}>{p.name}</option>)}</select></div>
+ <div className="field"><label>Available Room / Bed *</label><select required name="roomId" value={form.roomId} onChange={change}><option value="">Select available room</option>{propertyRooms.filter(r=>r.status==="Available").map(r=><option value={r.id}>{r.number} · {r.category} · ₹{r.price}</option>)}</select></div>
+ <div className="field"><label>Check-in *</label><input required type="date" name="checkIn" value={form.checkIn} onChange={change}/></div><div className="field"><label>Check-out *</label><input required type="date" name="checkOut" value={form.checkOut} onChange={change}/></div>
+ <div className="field"><label>Total Amount (₹) *</label><input required type="number" min="0" name="amount" value={form.amount} onChange={change}/></div><div className="field"><label>Booking Source</label><select name="source" value={form.source} onChange={change}><option>Website</option><option>Walk-in</option><option>Phone</option><option>OTA</option><option>Referral</option></select></div></div><div className="modal-actions"><button className="btn">Confirm Booking</button></div></form></Modal>}</>;
+}
